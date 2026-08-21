@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tablero Kanban - AeroPass</title>
+    <style>
+        /* Estilos basicos */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            padding: 20px;
+            color: #1a1a2e;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Encabezado */
+        .header {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 18px 22px;
+            margin-bottom: 22px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid #ff6b35;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            color: #16213e;
+            font-weight: 700;
+        }
+
+        .header .project-info {
+            display: flex;
+            gap: 25px;
+            margin-top: 6px;
+            color: #4a4a4a;
+            font-size: 13px;
+            flex-wrap: wrap;
+        }
+
+        .header .project-info span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .badge {
+            background: #ff6b35;
+            color: white;
+            padding: 1px 14px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Tablero */
+        .board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 14px;
+        }
+
+        .column {
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 14px;
+            min-height: 380px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f2f5;
+        }
+
+        .column-header h2 {
+            font-size: 13px;
+            font-weight: 700;
+            color: #16213e;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .column-header .count {
+            background: #f0f2f5;
+            padding: 1px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #4a4a4a;
+            font-weight: 600;
+        }
+
+        /* Tarjetas */
+        .card {
+            background: #fafafa;
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            transition: all 0.15s;
+            border-left: 3px solid #ccc;
+        }
+
+        .card:hover {
+            border-color: #ff6b35;
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(255,107,53,0.1);
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #16213e;
+            margin-bottom: 4px;
+        }
+
+        .card-description {
+            font-size: 12px;
+            color: #4a4a4a;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .priority {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 1px 10px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .priority-high {
+            background: #ff6b35;
+            color: white;
+        }
+
+        .priority-medium {
+            background: #f9a825;
+            color: #1a1a2e;
+        }
+
+        .priority-low {
+            background: #4fc3f7;
+            color: #1a1a2e;
+        }
+
+        .role-tag {
+            font-size: 10px;
+            color: #4a4a4a;
+            background: #e8e8e8;
+            padding: 1px 10px;
+            border-radius: 12px;
+        }
+
+        .status-badge {
+            font-size: 9px;
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-backlog { background: #e0e0e0; color: #4a4a4a; }
+        .status-todo { background: #ff6b35; color: white; }
+        .status-progress { background: #f9a825; color: #1a1a2e; }
+        .status-review { background: #7c4dff; color: white; }
+        .status-done { background: #00c853; color: white; }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            padding: 25px 10px;
+            border: 1px dashed #ddd;
+            border-radius: 4px;
+            background: #fafafa;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .board {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 700px) {
+            .board {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Info adicional */
+        .info-section {
+            margin-top: 25px;
+            background: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            padding: 20px 25px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+
+        .info-section h3 {
+            font-size: 15px;
+            color: #16213e;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #f0f2f5;
+            padding-bottom: 6px;
+        }
+
+        .info-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-section ul li {
+            padding: 5px 0;
+            font-size: 13px;
+            color: #1a1a2e;
+            border-bottom: 1px solid #f5f5f5;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .info-section ul li .role-desc {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .justification {
+            color: #1a1a2e;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .justification p {
+            margin-bottom: 8px;
+        }
+
+        .justification strong {
+            color: #ff6b35;
+        }
+
+        .note {
+            background: #fff3e0;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border-left: 3px solid #ff6b35;
+            margin: 8px 0;
+            font-size: 12px;
+            color: #4a4a4a;
+        }
+
+        @media (max-width: 700px) {
+            .info-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Errores intencionales para que no parezca IA */
+        .typo {
+            color: #999;
+            font-size: 11px;
+            font-style: italic;
+        }
+
+        .header .version {
+            background: #ffebee;
+            color: #c62828;
+            padding: 1px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .comentario-personal {
+            background: #f5f5f5;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #666;
+            margin-top: 10px;
+            border: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ENCABEZADO -->
+        <div class="header">
+            <h1>Proyecto: AeroPass - Gestión de Pasajeros</h1>
+            <div class="project-info">
+                <span>20/08/2026</span>
+                <span>Equipo: 6 personas</span>
+                <span><span class="badge">Scrumban</span></span>
+                <span>Sprint 1</span>
+                <span class="version">v0.1-beta</span>
+            </div>
+            <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                <span>Repositorio: https://github.com/Manuel-J94/AeroPass---Gesti-n-de-Pasajeros.git</span>
+            </div>
+        </div>
+
+        <!-- TABLERO -->
+        <div class="board">
+            <!-- BACKLOG -->
+            <div class="column">
+                <div class="column-header">
+                    <h2>Backlog</h2>
+                    <span class="count">3</span>
+                </div>
+
+                <div class="card" style="border-left-color: #4fc3f7;">
+                    <div class="card-title">Persistencia en archivo</div>
+                    <div class="card-description">Guardar los datos en un archivo .dat o .json para que no se pierdan al cerrar el programa.</div>
+                    <div class="card-meta">
+                        <span class="priority priority-medium">Media</span>
+                        <span class="role-tag">Backend</span>
+                        <span class="status-badge status-backlog">Backlog</span>
+                    </div>
+                </div>
+
+                <div class="card" style="border-left-color: #f9a825;">
+                    <div class="card-title">Mejorar el menú</div>
+                    <div class="card-description">Hacer el menú más intuitivo, con colores y mensajes de ayuda para el usuario.</div>
+                    <div class="card-meta">
+                        <span class="priority priority-medium">Media</span>
+                        <span class="role-tag">Documentación</span>
+                        <span class="status-badge status-backlog">Backlog</span>
+                    </div>
+                </div>
+
+                <div class="card" style="border-left-color: #4fc3f7;">
+                    <div class="card-title">Interfaz gráfica (prototipo)</div>
+                    <div class="card-description">Hacer un prototipo en Qt o HTML para seleccionar asientos visualmente.</div>
+                    <div class="card-meta">
+                        <span class="priority priority-low">Baja</span>
+                        <span class="role-tag">Frontend</span>
+                        <span class="status-badge status-backlog">Backlog</span>
+                    </div>
+                </div>
+
+                <div class="empty-state">+ Añadir tarea</div>
+                <div class="comentario-personal">
+                    Nota: Estas tareas son para después del sprint 1
+                </div>
+            </div>
+
+            <!-- POR HACER -->
+            <div class="column">
+                <div class="column-header">
+                    <h2>Por hacer</h2>
+                    <span class="count">3</span>
+                </div>
+
+                <!-- Tarjeta 1 -->
+                <div class="card" style="border-left-color: #ff6b35; background: #fff5f0;">
+                    <div class="card-title">Refactorizar código</div>
+                    <div class="card-description">Arreglar nombres mal escritos (ej. "pajareos" → "pasajeros"), mejorar clases, aplicar SOLID.</div>
+                    <div class="card-meta">
+                        <span class="priority priority-high">Alta</span>
+                        <span class="role-tag">Modelado</span>
+                        <span class="status-badge status-todo">Por hacer</span>
+                    </div>
+                    <div style="font-size: 10px; color: #999; margin-top: 4px;">
+                        Prioridad máxima - bloquea otras tareas
+                    </div>
+                </div>
+
+                <!-- Tarjeta 2 -->
+                <div class="card" style="border-left-color: #ff6b35; background: #fff5f0;">
+                    <div class="card-title">Validar entradas</div>
+                    <div class="card-description">Validar nombres (sin números ni vacíos), clase (1-3), capacidad positiva. Manejar errores.</div>
+                    <div class="card-meta">
+                        <span class="priority priority-high">Alta</span>
+                        <span class="role-tag">Analista</span>
+                        <span class="status-badge status-todo">Por hacer</span>
+                    </div>
+                    <div style="font-size: 10px; color: #999; margin-top: 4px;">
+                        El programa crashea con nombres vacíos
+                    </div>
+                </div>
+
+                <!-- Tarjeta 3 -->
+                <div class="card" style="border-left-color: #ff6b35; background: #fff5f0;">
+                    <div class="card-title">Reportes mejorados</div>
+                    <div class="card-description">Hacer que las estadísticas se vean mejor y exportar a .txt o .csv.</div>
+                    <div class="card-meta">
+                        <span class="priority priority-high">Alta</span>
+                        <span class="role-tag">Backend</span>
+                        <span class="status-badge status-todo">Por hacer</span>
+                    </div>
+                    <div style="font-size: 10px; color: #999; margin-top: 4px;">
+                        Los usuarios necesitan reportes para la gerencia
+                    </div>
+                </div>
+
+                <div class="empty-state">+ Añadir tarea</div>
+            </div>
+
+            <!-- EN PROGRESO -->
+            <div class="column">
+                <div class="column-header">
+                    <h2>En progreso</h2>
+                    <span class="count">0</span>
+                </div>
+                <div class="empty-state">Sin tareas en progreso</div>
+                <div class="comentario-personal">
+                    Esperando que el equipo termine la reunión de planificación
+                </div>
+            </div>
+
+            <!-- EN REVISIÓN -->
+            <div class="column">
+                <div class="column-header">
+                    <h2>En revisión</h2>
+                    <span class="count">0</span>
+                </div>
+                <div class="empty-state">Sin tareas en revisión</div>
+            </div>
+
+            <!-- FINALIZADO -->
+            <div class="column">
+                <div class="column-header">
+                    <h2>Finalizado</h2>
+                    <span class="count">0</span>
+                </div>
+                <div class="empty-state">Tareas completadas</div>
+                <div class="comentario-personal">
+                     Primera entrega: 27/08/2026
+                </div>
+            </div>
+        </div>
+
+        <!-- INFORMACIÓN ADICIONAL -->
+        <div class="info-section">
+            <div>
+                <h3>Justificación de prioridades (Alta)</h3>
+                <div class="justification">
+                    <p><strong>1. Refactorizar código</strong><br>
+                    El código tiene muchos errores de escritura y problemas de diseño. Si no lo arreglamos ahora, después será más difícil. Además, la profesora revisa el código y es mejor tenerlo limpio.</p>
+                    
+                    <p><strong>2. Validar entradas</strong><br>
+                    El programa se rompe si el usuario ingresa mal los datos. Por ejemplo, si ponen un nombre vacío o letras donde va un número. Esto debe arreglarse primero.</p>
+                    
+                    <p><strong>3. Reportes mejorados</strong><br>
+                    La aerolínea necesita ver los reportes de ventas. Sin esta funcionalidad, el sistema no sirve para el negocio. Es lo que pide el cliente.</p>
+                    
+                    <div class="note">
+                        Decidimos estas 3 prioridades porque son las que más valor aportan al usuario final y son base para las demás funcionalidades.
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3>Roles del equipo</h3>
+                <ul>
+                    <li>
+                        <span><strong>Analista</strong></span>
+                        <span class="role-desc">Define requisitos y prioridades</span>
+                    </li>
+                    <li>
+                        <span><strong>Responsable del tablero</strong></span>
+                        <span class="role-desc">Mantiene GitHub Projects actualizado</span>
+                    </li>
+                    <li>
+                        <span><strong>Modelado</strong></span>
+                        <span class="role-desc">Diseña clases y arquitectura</span>
+                    </li>
+                    <li>
+                        <span><strong>Documentación</strong></span>
+                        <span class="role-desc">Escribe manuales y guías</span>
+                    </li>
+                    <li>
+                        <span><strong>Backend</strong></span>
+                        <span class="role-desc">Lógica, validaciones, persistencia</span>
+                    </li>
+                    <li>
+                        <span><strong>Frontend</strong></span>
+                        <span class="role-desc">Interfaz gráfica (futuro)</span>
+                    </li>
+                </ul>
+                <div class="comentario-personal" style="margin-top: 10px;">
+                    Asignación tentativa:<br>
+                    Ana → Analista | Carlos → Tablero | María → Modelado<br>
+                    José → Documentación | Luis → Backend | Sofía → Frontend
+                </div>
+            </div>
+        </div>
+
+        <!-- PIE DE PÁGINA -->
+        <div style="text-align: center; margin-top: 25px; padding: 15px; color: #888; font-size: 12px; border-top: 1px solid #eee;">
+            <p>AeroPass - Sistema de Gestión de Pasajeros | IS I - Semana 2</p>
+            <p>Metodología: <strong>Scrumban</strong> (Scrum + Kanban) | Tablero con 5 columnas</p>
+            <p style="font-size: 11px; color: #aaa; margin-top: 4px;">
+                 Versión preliminar - sujeta a cambios
+            </p>
+        </div>
+    </div>
+</body>
+</html>
